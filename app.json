@@ -3,6 +3,10 @@
     "name": "ReleveAmendis",
     "slug": "ReleveAmendis",
     "version": "1.0.0",
+    "android": {
+      "package": "com.youssouf.ReleveAmendismain",
+      "versionCode": 1
+    },
     "assetBundlePatterns": [
       "**/*"
     ]
