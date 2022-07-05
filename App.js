@@ -9,15 +9,12 @@ import {  useDispatch, useSelector } from 'react-redux';
 import { setAnomalies, setDesignationAnomalies } from './services/redux/anomalieSlice'
 import { loding, setCompteurs } from './services/redux/compteurSlice';
 import { NativeBaseProvider, Text, extendTheme } from 'native-base';
+import { AddDataToStore } from './services/AddDataTotore';
 
 export default function App() {
-  const dispatch = useDispatch();
-  const compteurs = useSelector((state) => state.compteurs);
- // console.log('lescompteurs',compteurs)
-
-  //dropAllTables()
-  /////// Create DB if not exist ***********
-  useEffect(() => {
+  const dispatch = useDispatch()
+ useEffect(() => {
+    /////// Create DB if not exist ***********
     db.transaction(function (txn) {
       txn.executeSql(
         "SELECT 1 from sqlite_master WHERE type='table' AND name = 'user'",
@@ -31,55 +28,7 @@ export default function App() {
       );
     });
 
-    ///////*********** Add All anomalies to store //////// */
-    db.transaction(function (txn) {
-      txn.executeSql(
-        'SELECT * FROM anomalie',
-        [],
-        (tx, res) => {
-          var temp = [];
-          let len = res.rows.length;
-          // console.log('Anomalie:', len);
-          for (let i = 0; i < len; ++i)
-            temp.push(res.rows.item(i));
-          dispatch(setAnomalies(temp))
-        }
-      );
-    });
-    ///////*********** Add All Designations anomalies to store //////// */
-    db.transaction(function (txn) {
-      txn.executeSql(
-        'SELECT designation FROM anomalie',
-        [],
-        (tx, res) => {
-          var temp = [];
-          let len = res.rows.length;
-          //console.log('Designations anomalie:', len);
-          for (let i = 0; i < len; ++i)
-            temp.push(res.rows.item(i));
-          dispatch(setDesignationAnomalies(temp))
-        }
-      );
-    });
-
-    ///////*********** Add All fluides to store //////// */
-    db.transaction(function (txn) {
-      txn.executeSql(
-        'SELECT * FROM compteur',
-        [],
-        (tx, res) => {
-          var temp = [];
-          let len = res.rows.length;
-          console.log('Compteur:', len);
-          for (let i = 0; i < len; ++i)
-            temp.push(res.rows.item(i));
-          //console.log(temp[0])
-          dispatch(loding());
-          dispatch(setCompteurs(temp))
-        }
-      );
-    });
-    ///////*********** Add All fluides to store //////// */
+    AddDataToStore(dispatch);
     //dropAllTables()
 
   }, []);

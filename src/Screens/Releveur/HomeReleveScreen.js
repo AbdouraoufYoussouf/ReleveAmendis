@@ -2,49 +2,30 @@ import React, { useEffect, useState, useCallback, useRef, Fragment } from 'react
 import { KeyboardAvoidingView, ScrollView, Text, View, TouchableOpacity, StyleSheet, useWindowDimensions, RefreshControl, LogBox } from 'react-native';
 import { Form, FormControle, MyText, InputFild, Label, FormInput, MyButton } from '../styles/homeStyle';
 import Dialog from "react-native-dialog";
-import { FontAwesome, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { AntDesign, FontAwesome, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useDispatch, useSelector } from 'react-redux';
 import Swiper from 'react-native-swiper';
 import { ToastSuccess } from '../../Components/Notifications';
 import { BarIndicator, UIActivityIndicator, } from 'react-native-indicators';
-import { notLoding } from '../../../services/redux/compteurSlice';
+import { notLoding, setIdCompteur } from '../../../services/redux/compteurSlice';
 import MyLoader from '../../Components/MyLoader';
 import { Select, NativeBaseProvider, extendTheme, CheckIcon } from "native-base";
 
 import * as yup from 'yup';
 import { Formik } from 'formik';
-import { Icone } from '../../Connexion/styles';
+import { Icone, Icone1 } from '../../Connexion/styles';
+import MySelect from '../../Components/MySelect';
+import MyDialog from '../../Components/MyDialog';
 
 const wait = (timeout) => {
   return new Promise(resolve => setTimeout(resolve, timeout));
 }
 
 export default function HomeReleveScreen({ navigation, route }) {
-  const theme = extendTheme({
-    components: {
-      Select: {
-        baseStyle: {
-          borderColor: '#444',
-          width: '70%',
-          height: '40px',
-          backgroundColor: '#465881',
-          borderRadius: 5,
-        },
-        defaultProps: {
-          size: "md",
-        },
-        sizes: {
-          md: {
-            fontSize: "20px"
-          }
-        }
-      }
-    }
-  });
 
   const idCompteur = useSelector((state) => state.compteurs.idCompteur);
   const [index, setIndex] = useState(0);
-  console.log('idcompteur', idCompteur)
+  //console.log('idcompteur', idCompteur)
 
   const { height, width } = useWindowDimensions();
   const dispatch = useDispatch()
@@ -78,39 +59,41 @@ export default function HomeReleveScreen({ navigation, route }) {
 
   //     *************  search  **************
   const [termSearch, setTermSearch] = useState('');
-  const [error, setError] = useState('');
-  const [nonTrouve, setNonTrouve] = useState(true);
 
   const search = (searchItem) => {
     return compteurs.find(c => c.numeroCompteur === searchItem) || compteurs.find(c => c.idGeographique === searchItem) || compteurs.find(c => c.nomAbonne === searchItem) || compteurs.find(c => c.police === searchItem);
   }
   /// Dialog ***********
-  const [visible, setVisible] = useState(false);
-  const showDialog = () => {
-    setVisible(true);
-  };
-  const handleCancel = () => {
-    setVisible(false);
-  };
+  const [modalVisible, setModalVisible] = useState(false);
+  const [errore, setErrore] = useState(null);
   /// Dialog ***********
 
   const handleSearch = () => {
     let temp = search(termSearch)
-    console.log('serach', termSearch)
-    console.log('Data', temp)
-
-    if (temp != null) {
-      setIndex(temp.compteurId - 1)
+    // console.log('serach', termSearch)
+    
+    if (temp != null && termSearch!='') {
+      // console.log('idcompt', temp.compteurId)
+      // console.log('index', index)
+      // console.log('compteur', compteur)
+      dispatch(setIdCompteur(temp.compteurId - 1))
       setCompteur(temp)
     }
-    if (compteur.length==null) {
-      showDialog()
+    if (temp == null  && termSearch!='') {
+      setModalVisible(true)
+      setErrore("Le terme rechercher n'existe pas !!")
+      // wait(5000).then(() => setErrore(""));
+    }
+    if (temp == null  && termSearch=='') {
+      setModalVisible(true)
+      setErrore("Veillez saisir un terme à rechercher svp !!")
+      // wait(5000).then(() => setErrore(""));
     }
   }
 
   const setLoding = () => {
     if (anomaliesData.length != 0) {
-      wait(400).then(() => dispatch(notLoding()));
+      wait(200).then(() => dispatch(notLoding()));
     }
   };
 
@@ -144,11 +127,14 @@ export default function HomeReleveScreen({ navigation, route }) {
     setDesignationData(anomaliesData)
     setAnomalies(designations)
     setLoding();
+    // console.log('*****************')
+    // console.log('useIndex',index)
+    // console.log('*****************')
     //handleSearch()
   }, [idCompteur, termSearch])
 
   return (
-    <NativeBaseProvider theme={theme}>
+    <>
       {
         isLoding ?
           (
@@ -156,7 +142,6 @@ export default function HomeReleveScreen({ navigation, route }) {
           ) :
           (
             <>
-
               <Swiper style={styles.wrapper}
                 index={index}
                 onIndexChanged={(index) => console.log('index changed', index)}
@@ -189,45 +174,66 @@ export default function HomeReleveScreen({ navigation, route }) {
                         //     onRefresh={onRefresh}
                         //   />
                         // }
+                        keyboardShouldPersistTaps='never'
+                        keyboardDismissMode='on-drag'
                         key={index}
                         style={{
                           flex: 1,
                           backgroundColor: (item.codeFluide === 'BT') ? '#FF69B4' : (item.codeFluide === 'MT') ? '#A0522D' : '#00BFFF',
                         }}
-                        keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+                        showsVerticalScrollIndicator={false}>
 
-                        <KeyboardAvoidingView key={index} keyboardVerticalOffset={ -270} 
-                        behavior='position'>
+                        <KeyboardAvoidingView key={index} keyboardVerticalOffset={-270}
+                          behavior='position'>
+                          <MyDialog modalVisible={modalVisible}
+                            content={errore}
+                            setModalVisible={setModalVisible}
+                            type='warning'
+                          />
                           <Form>
-                            <FormControle zindex width='99%' marginV='1px' >
+                            <FormControle width='99%' marginV='1px' >
                               <FormInput>
-                                <InputFild 
+                                {
+                                  termSearch != '' ? (
+                                    <Icone1 width='50px' onPress={()=>setTermSearch('')} >
+                                      <Ionicons name='md-close-circle-outline' size={30} color={'rgba(255,255,255,0.7)'} />
+                                    </Icone1>
+                                  ) : (
+                                    <Icone1 width='50px' >
+                                      <MaterialCommunityIcons name="gesture-two-double-tap" size={30} style={{transform: [{ rotate: '90deg'}]}} color="rgba(255,255,255,0.7)" />
+                                    </Icone1>
+                                  )
+                                }
+
+                                <InputFild width='100%' paddingH='37px'
+                                  //returnKeyType='search'
                                   value={termSearch}
                                   onChangeText={(term) => setTermSearch(term)}
-                                  width='100%' placeholder='Soit numero|idGeo|police|abonne'
+                                  placeholder='Soit numero|idGeo|police|abonne'
                                   placeholderTextColor='gray'
                                 />
-                                <Icone onPress={() => handleSearch()} >
+                                <Icone width='50px' onPress={() => handleSearch()} >
                                   <Ionicons name='search' size={30} color={'rgba(255,255,255,0.7)'} />
                                 </Icone>
                               </FormInput>
                             </FormControle>
-                           
+
                           </Form>
-                          <Dialog.Container visible={visible}
-                            contentStyle={styles.dialog} >
-                            <Dialog.Description style={{ color: 'white' }}>
-                              Le terme entré est introuvable!!                             
-                              </Dialog.Description>
-                            <Dialog.Button label="Férmer" style={{ backgroundColor: 'blue', marginBottom: 5, borderRadius: 7 }} color={'white'} onPress={handleCancel} />
-                          </Dialog.Container>
+                          {/* {
+                            errore != null ? (
+                              <Text style={{ fontSize: 20, textAlign: 'center', marginBottom: 5, color: 'yellow', }}>
+                                {errore}
+                              </Text>
+                            ) : (<></>)
+                          } */}
+
                           <Text style={{ fontSize: 20, fontWeight: 'bold', textAlign: 'center', marginBottom: 15 }}>
                             Releve d'un compteur {item.codeFluide}</Text>
                           <Form>
                             <FormControle>
                               <FormInput>
                                 <Label>N° C</Label>
-                                <InputFild value={item.numeroCompteur} keyboardType='numeric' width='60%' />
+                                <InputFild value={item.numeroCompteur} keyboardType='numeric' width='57%' />
                               </FormInput>
 
                               <FormInput>
@@ -238,7 +244,7 @@ export default function HomeReleveScreen({ navigation, route }) {
                             <FormControle>
                               <FormInput>
                                 <Label >Id Geo</Label>
-                                <InputFild value={item.idGeographique} keyboardType='numeric' width='60%' />
+                                <InputFild value={item.idGeographique} keyboardType='numeric' width='57%' />
                               </FormInput>
                             </FormControle>
 
@@ -248,7 +254,7 @@ export default function HomeReleveScreen({ navigation, route }) {
                                 <InputFild
                                   value={newIndex}
                                   onChangeText={(index) => setNewIndex(index)}
-                                  keyboardType='numeric' width='60%' />
+                                  keyboardType='numeric' width='57%' />
                               </FormInput>
                               <FormInput>
                                 <TouchableOpacity style={{}}
@@ -261,47 +267,22 @@ export default function HomeReleveScreen({ navigation, route }) {
                             <FormControle>
                               <FormInput width='80%'>
                                 <Label >AN1</Label>
-                                <Select
-                                  selectedValue={anomalie1}
-                                  minWidth="300"
-                                  accessibilityLabel="Select Anomalie 1"
-                                  placeholder="Select Anomalie 1"
-                                  style={{ flex: 1, backgroundColor: '#466081', color: 'rgba(255,255,255,0.7)' }}
-                                  _selectedItem={{
-                                    bg: "teal.700", color: 'white',
-                                    endIcon: <CheckIcon size="15" />
-                                  }} mt={1} onValueChange={itemValue => setAnomalie1(itemValue)}>
-                                  {
-                                    designations.map((item, index) => {
-                                      return (
-                                        <Select.Item key={index} label={item.label} value={item.value} />
-                                      )
-                                    })
-                                  }
-                                </Select>
+                                <MySelect
+                                  placeholder='Select Anomalie 1'
+                                  data={anomaliesData}
+                                  value={anomalie1}
+                                  setValue={setAnomalie1} />
                               </FormInput>
                             </FormControle>
 
                             <FormControle>
                               <FormInput width='80%' >
                                 <Label >AN2</Label>
-
-                                <Select
-                                  selectedValue={anomalie2}
-                                  minWidth="300"
-                                  accessibilityLabel="Select Anomalie 2"
-                                  placeholder="Select Anomalie 2"
-                                  style={{ flex: 1, backgroundColor: '#466081', color: 'rgba(255,255,255,0.7)' }}
-                                  _selectedItem={{ bg: "primary.400", }}
-                                  onValueChange={itemValue => setAnomalie2(itemValue)}>
-                                  {
-                                    designations.map((item, index) => {
-                                      return (
-                                        <Select.Item key={index} label={item.label} value={item.value} />
-                                      )
-                                    })
-                                  }
-                                </Select>
+                                <MySelect
+                                  placeholder='Select Anomalie 2'
+                                  data={anomaliesData}
+                                  value={anomalie2}
+                                  setValue={setAnomalie2} />
                               </FormInput>
                             </FormControle>
 
@@ -387,7 +368,7 @@ export default function HomeReleveScreen({ navigation, route }) {
             </>
           )
       }
-    </NativeBaseProvider>
+    </>
   )
 }
 

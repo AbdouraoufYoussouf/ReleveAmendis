@@ -3,28 +3,15 @@ import React, { useState ,useEffect} from 'react'
 import { View, ScrollView, FlatList, TouchableOpacity, Text, StyleSheet } from 'react-native'
 import { useSelector } from 'react-redux';
 
-export default function Anomalie({navigation}) {
-    const anomaliesData = useSelector((state) => state.anomalies.anomalies); 
-    const Data = [
-        {
-            id: 1,
-            codeA: 'Peacock',libele:457845,designation:'Compteur Bloqué',codeFluide:'TT',
-        },
-        {
-            id: 2,
-            codeA: 'Peacock',libele:457845,designation:'Compteur tres haut',codeFluide:'TT',
-        },
-        {
-            id: 3,
-            codeA: 'Peacock',libele:457845,designation:'Compteur mal posé',codeFluide:'TT',
-        },
-        {
-            id: 4,
-            codeA: 'Peacock',libele:457845,designation:"Compteur à l'interieur",codeFluide:'TT',
-        },
-     
-    ];
+export default function Anomalie() {
 
+    const anomaliesData = useSelector((state) => state.anomalies.anomalies); 
+    const [anomalies,setAnomalies] = useState([])
+
+    useEffect(()=>{
+        setAnomalies(anomaliesData.anomalies)
+    },[])
+  
     const FlatList_Header = () => {
         return (
             <View style={{
@@ -81,7 +68,7 @@ export default function Anomalie({navigation}) {
         <View style={styles.container} >
             <ScrollView horizontal={true}  bounces={false}>
                 <FlatList
-                    data={anomaliesData}
+                    data={anomalies}
                     renderItem={({ item ,index }) => <ItemRender index={index} codeA={item.codeAnomalie} libele={item.libele} designation={item.designation} codeFluide={item.codeFluide} adress={item.adress} />}
                     keyExtractor={item => item.codeAnomalie}
                     ItemSeparatorComponent={ItemDivider}

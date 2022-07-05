@@ -64,7 +64,7 @@ export const FormInput = styled.View`
 
 export const InputFild = styled.TextInput.attrs(props => ({
     secureTextEntry : props.secureTextEntry,onChangeText:props.onChangeText,
-    placeholderTextColor : '#fff',value:props.value,
+    placeholderTextColor : 'rgb(128, 128, 128)',value:props.value,defaultValue:props.defaultValue,
 }))`
     color: 'rgba(255,255,255,0.7)';
     height: 42px;
@@ -77,8 +77,25 @@ export const Icone = styled.TouchableOpacity.attrs(props => ({
     onPress : props.onPress
 }))`
     position: absolute;
-    right: 5px;
+    right: -2px;
     top: ${(props)=>props.top || '4px'};
+    width: ${(props)=>props.width || '34px'};
+    height: auto;
+    z-index: 10;
+    //background-color: #000;
+    align-items: center;
+`;
+export const Icone1 = styled.TouchableOpacity.attrs(props => ({
+    onPress : props.onPress
+}))`
+    position: absolute;
+    left: -7px;
+    top: ${(props)=>props.top || '4px'};
+    width: ${(props)=>props.width || '34px'};
+    height: auto;
+    z-index: 10;
+    //background-color: #000;
+    align-items: center;
 `;
 
 export const MyTouchableOpacity = styled.TouchableOpacity.attrs(props => ({
@@ -90,6 +107,12 @@ export const MyTouchableOpacity = styled.TouchableOpacity.attrs(props => ({
 export const Text = styled.Text`
     font-size: ${(props)=>props.size || '15px'};
     color: ${(props)=>props.color || 'white'};
-   
-   
+`;
+
+export const FormTouchable = styled.TouchableHighlight`
+    width: ${(props)=>props.width || '99%'};
+    max-height: 75px;
+    flex-direction: row;
+    margin: ${(props)=>props.marginV || '5px'} 0;
+    justify-content: space-between;
 `;

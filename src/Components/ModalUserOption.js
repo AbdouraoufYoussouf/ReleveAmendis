@@ -3,6 +3,7 @@ import { useNavigation } from "@react-navigation/native";
 import React, { useState, useRef, useEffect } from "react"
 import { StyleSheet, Text, View, TouchableOpacity, Modal, Pressable ,BackHandler} from "react-native"
 import { useDispatch } from "react-redux";
+import { AddDataToStore } from "../../services/AddDataTotore";
 import { logout } from "../../services/redux/userSlice";
 import { dropAllTables, seedDatabase } from "../../services/SqliteDb";
 
@@ -22,6 +23,7 @@ export default function ModalUserOption() {
     const createDb =()=>{
         seedDatabase();
         toggleModal();
+        AddDataToStore(dispatch);
     }
     const goto = (route) => {
         navigation.navigate(route);

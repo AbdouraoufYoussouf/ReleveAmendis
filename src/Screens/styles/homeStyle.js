@@ -17,13 +17,11 @@ export const Form = styled.View`
     margin-top: ${(props)=>props.marginTop || 'auto'};
 `;
 export const FormControle = styled.View`
-z-index: ${props => props.zindex ? '10':''};
     width: ${(props)=>props.width || '99%'};
     max-height: 75px;
     flex-direction: row;
     margin: ${(props)=>props.marginV || '5px'} 0;
     justify-content: space-between;
-    
 `;
 
 export const FormInput = styled.View`
@@ -98,7 +96,7 @@ export const InputFild = styled.TextInput.attrs(props => ({
     color: 'rgba(255,255,255,0.7)';
     height: 40px;
     min-width: ${(props)=>props.width || '80%'};
-    padding:1px 5px;
+    padding:1px ${(props)=>props.paddingH || '5px'};
     border-radius: 5px;
     font-size: 20px;
     background-color:  #465881;
