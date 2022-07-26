@@ -3,21 +3,22 @@ import React, { useState } from 'react'
 import { View, Text, Pressable, TouchableOpacity, Modal, StyleSheet } from 'react-native'
 import { FormInput, Icone, InputFild } from '../Connexion/styles'
 
-function MySelect({data,value,setValue,placeholder}) {
+function MySelect({ data, setValue, placeholder,label,setLabel }) {
     const [modalVisible, setModalVisible] = useState(false);
-
- //console.log('selectData',data)
+  
+    
+    //console.log('selectData',data)
     return (
         <Pressable onPress={() => setModalVisible(true)}>
-            <View style={{ width: '98%' ,position:'relative',}} >
+            <View style={{ width: '98%', position: 'relative', }} >
                 <FormInput>
                     <InputFild
                         editable={false}
-                        value={value}
+                        value={label}
                         placeholder={placeholder}
                     />
                     <Icone disabled={true} >
-                        <Entypo name={modalVisible ? "chevron-down":"chevron-up"} size={30} color={'rgba(255,255,255,0.7)'} />
+                        <Entypo name={modalVisible ? "chevron-down" : "chevron-up"} size={30} color={'rgba(255,255,255,0.7)'} />
                     </Icone>
                 </FormInput>
 
@@ -35,15 +36,17 @@ function MySelect({data,value,setValue,placeholder}) {
 
                         <Pressable onPress={() => setModalVisible(true)}
                             style={styles.modalContent}>
-                                <View style={{width:50,height:5,backgroundColor:'white',alignSelf:'center',marginTop:5,borderRadius:5}}></View>
+                            <View style={{ width: 50, height: 5, backgroundColor: 'white', alignSelf: 'center', marginTop: 5, borderRadius: 5 }}></View>
                             <View style={styles.body}>
-                                {data.map((item,index)=>{
-                                    return(
-                                        <TouchableOpacity key={index} style={[styles.contText,{backgroundColor: value==item.designation ? 'green' : ''}]}
-                                        onPress={()=>{setValue(item.designation),setModalVisible(false)}}
+                                {data.map((item, index) => {
+                                    return (
+                                        
+                                        <TouchableOpacity key={index} style={[styles.contText, { backgroundColor: label == item.label ? 'green' : '' }]}
+                                            onPress={() => { setLabel(item.label),setValue(item.value), setModalVisible(false) }}
                                         >
-                                            <AntDesign  style={{ marginTop: 3 ,opacity:value==item.designation ? 1 : 0}} name="check" size={22} color="white" />
-                                            <Text style={styles.modalText}>{item.designation} </Text>
+                                            {/* { console.log('item: ',item.label)} */}
+                                            <AntDesign style={{ marginTop: 3, opacity: label == item.label ? 1 : 0 }} name="check" size={22} color="white" />
+                                            <Text style={styles.modalText}>{item.label} </Text>
                                         </TouchableOpacity>
                                     )
                                 })}
@@ -76,15 +79,15 @@ const styles = StyleSheet.create({
         backgroundColor: '#444',
     },
     body: {
-           marginTop:22,
+        marginTop: 22,
         width: '100%',
     },
-      contText: {
+    contText: {
         //backgroundColor: 'gray',
         marginBottom: 2,
         display: "flex",
-        justifyContent:'space-between',
-        paddingHorizontal:10,
+        justifyContent: 'space-between',
+        paddingHorizontal: 10,
         flexDirection: 'row-reverse',
         height: 33
     },

@@ -6,10 +6,9 @@ import { loding, notLoding, setIdCompteur, setRouteCompteur } from '../../../ser
 export default function NonlusCompteurScreen({ navigation }) {
 
     const compteurs = useSelector((state) => state.compteurs.compteurs);
-    const data = compteurs.filter((cmp) => cmp.etatLecture == null || cmp.etatLecture == 0)
     const dispatch = useDispatch();
 
-    //console.log('nonlus',data)
+    console.log('nonlus',compteurs)
 
     const goToHomeWithID = (id) => {
         dispatch(loding())
@@ -40,9 +39,9 @@ export default function NonlusCompteurScreen({ navigation }) {
         );
     }
 
-    const ItemRender = ({ idCompteur, numero, idGeo, police, abonne, adress, index }) => (
+    const ItemRender = ({ idCompteur,compteurId, numero, idGeo, police, abonne, adress, index }) => (
         <TouchableOpacity key={index}
-            onPress={() => goToHomeWithID(idCompteur)}
+            onPress={() => goToHomeWithID(compteurId)}
             style={[styles.item, index % 2 && { backgroundColor: '#D0C9C0' }]}>
             <Text style={{ fontSize: 16, marginLeft: 3, width: 50, color: 'black', textAlign: 'center' }}>{idCompteur}</Text>
             <Text style={{ fontSize: 16, marginLeft: 3, width: 80, color: 'black' }}>{numero}</Text>
@@ -70,8 +69,8 @@ export default function NonlusCompteurScreen({ navigation }) {
         <View style={styles.container} >
             <ScrollView horizontal={true} bounces={false}>
                 <FlatList
-                    data={data}
-                    renderItem={({ item, index }) => <ItemRender idCompteur={item.compteurId} index={index} numero={item.numeroCompteur} idGeo={item.idGeographique} police={item.police} abonne={item.nomAbonne} adress={item.adresse} />}
+                    data={compteurs}
+                    renderItem={({ item, index }) => <ItemRender compteurId={item.compteurId} idCompteur={item.idCompteur} index={index} numero={item.numeroCompteur} idGeo={item.idGeographique} police={item.police} abonne={item.nomAbonne} adress={item.adresse} />}
                     keyExtractor={item => item.compteurId}
                     ItemSeparatorComponent={ItemDivider}
                     ListHeaderComponent={FlatList_Header}

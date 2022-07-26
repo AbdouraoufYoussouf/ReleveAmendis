@@ -9,7 +9,7 @@ import db from '../../services/SqliteDb';
 import { ToastAvertisement } from '../Components/Notifications';
 import { BarIndicator, UIActivityIndicator, } from 'react-native-indicators';
 import { useDispatch } from 'react-redux';
-import { login } from '../../services/redux/userSlice';
+import { login, setTourne, setTourneCourant } from '../../services/redux/userSlice';
 
 
 export default function Login({ navigation, route }) {
@@ -23,6 +23,22 @@ export default function Login({ navigation, route }) {
 
   // Show Password //
   const [showPass, setShowPass] = useState(true);
+
+  const addTourneUser = (userId) => {
+    ///// Tournés du user
+    db.transaction((tx) => {
+      tx.executeSql('SELECT * FROM tournee t JOIN user u ON t.userId=u.userId WHERE u.userId=? ', [userId],
+        (tx, res) => {
+          var data = [];
+          let len = res.rows.length;
+          for (let i = 0; i < len; ++i)
+            data.push(res.rows.item(i));
+          dispatch(setTourne(data))
+          dispatch(setTourneCourant(data[0].numeroTournee))
+          console.log('tournesUser:', len);
+        });
+    });
+  }
 
   // Login in database //
   const onLogin = (email, password) => {
@@ -39,15 +55,16 @@ export default function Login({ navigation, route }) {
             const row = results.rows.item(0);
             userData.push(row)
             dispatch(login({
-              userId:row.userId,
-              matricule:row.matricule,
-              nom:row.nom,
-              role:row.role,
-              emailu:row.email,
-              passwordu:row.password
+              userId: row.userId,
+              matricule: row.matricule,
+              nom: row.nom,
+              role: row.role,
+              emailu: row.email,
+              passwordu: row.password
             }))
+            addTourneUser(row.userId)
             if (password === row.password) {
-             // console.log('userData',userData)
+              // console.log('userData',userData)
               navigation.navigate('home', { user: row })
               setEmail('')
               setPassword('')
@@ -132,7 +149,7 @@ export default function Login({ navigation, route }) {
                   </TouchableOpacity>
                 </FormControle>
 
-              {/* <FormControle >
+                {/* <FormControle >
                    <TouchableOpacity disabled={!isValid} onPress={handleSubmit}
                     style={[styles.btnSave, { backgroundColor: isValid ? '#155e75' : '#CACFD2' }]}
                   >
@@ -147,17 +164,17 @@ export default function Login({ navigation, route }) {
                 </FormControle>  */}
 
                 <FormControle >
-                  <TouchableOpacity  onPress={()=> onLogin('alhalim@gmail.com','Alhalim@2004')}
+                  <TouchableOpacity onPress={() => onLogin('alhalim@gmail.com', 'Alhalim@2004')}
                     style={[styles.btnSave, { backgroundColor: '#155e75' }]}
                   >
                     <MyButton fontSize='22px' paddingTop='3px' width='100%' color='white' >Se Connecter</MyButton>
                   </TouchableOpacity>
-                </FormControle> 
+                </FormControle>
 
               </Form>
             )}
           </Formik>
-         
+
         </Container>
       </KeyboardAvoidingView>
     </ScrollView>

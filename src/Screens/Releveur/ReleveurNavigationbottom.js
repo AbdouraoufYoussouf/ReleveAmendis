@@ -24,6 +24,8 @@ const globalScreenOptions = {
 };
 
 export const ReleveurNavigationBottom = ({ navigation }) => {
+
+    const tourneCourant = useSelector((state) => state.user.tourneCourant);
     const user = useSelector((state) => state.user.value);
     const [role, setRole] = useState(user.role)
     return (
@@ -31,7 +33,7 @@ export const ReleveurNavigationBottom = ({ navigation }) => {
             <Tab.Screen name="homeReleve" component={HomeReleveScreen}
                 options={{
                     tabBarLabel: 'Home',
-                    headerTitle: 'Tourné 21',
+                    headerTitle: 'Tourné '+ tourneCourant,
                     tabBarLabelStyle: { fontSize: 16 },
                     headerRight: () => (
                         <ModalCompteurOption />

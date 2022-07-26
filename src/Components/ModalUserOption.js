@@ -78,7 +78,7 @@ export default function ModalUserOption() {
                         </TouchableOpacity>
                        
                         <TouchableOpacity style={styles.contText}
-                            onPress={ dropAllTables}>
+                            onPress={()=> {dropAllTables,setModalVisible(false)}}>
                                 <Entypo style={{ margin: 3 }} name="database" size={24} color="blue" />
                             <Text style={{ fontSize: 20,color: 'red'}}>Delete DB</Text>
                         </TouchableOpacity>

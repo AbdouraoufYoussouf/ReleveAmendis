@@ -1,6 +1,5 @@
 import * as SQLite from 'expo-sqlite';
-import { Alert } from 'react-native';
-import React from 'react'
+ 
 import { ToastSuccess } from '../src/Components/Notifications';
 
 const DatabaseConnection = {
@@ -193,14 +192,19 @@ export const seedDatabase = () => {
           (20,'Avril','TPL1',2),
           (21,'Mais','TPL1',1),
           (22,'Juin','TPL1',2);`, [], onSuccess, onError);
-        tx.executeSql(`INSERT INTO compteur(numeroCompteur,nomAbonne ,adresse,numeroRue,codeSecteur,codeFluide,idGeographique,police,codeEtat,etatLecture) VALUES
-        ('117571','Belmaati imane IDRISSU BOUZIDI YOUSSEF','5 COMPLEX MIXTA SAFIA Et.2 App.44 BLOC 5 Martil','RUE1','SECT1','EA','IDGeo1','POLICE1','SE',1),
-        ('124572','Hamidou IDRISSU Said YOUSSEF','6 COMPLEX MIXTA SAFIA Et.2 App.44 BLOC 6 Martil','RUE2','SECT2','MT','IDGeo2','POLICE2','CS',null),
-        ('132573','IDAROUSSI IDRISSU BOUZIDI','7 COMPLEX MIXTA SAFIA Et.2 App.44 BLOC 7 Martil','RUE3','SECT3','BT','IDGeo3','POLICE3','RA',1),
-        ('147574','Abdouraouf Youssouf','5 COMPLEX MIXTA SAFIA Et.2 App.44 BLOC 5 Martil','RUE4','SECT4','EA','IDGeo4','POLICE4','SE',1),
-        ('154575','Djalaloudine mohamed','6 COMPLEX MIXTA SAFIA Et.2 App.44 BLOC 6 Martil','RUE5','SECT5','MT','IDGeo5','POLICE5','CS',0),
-        ('162576','Abdoulhalim Youssouf','7 COMPLEX MIXTA SAFIA Et.2 App.44 BLOC 7 Martil','RUE6','SECT6','BT','IDGeo6','POLICE6','RA',1),
-        ('176557','Andhimdine Youssouf','8 COMPLEX MIXTA SAFIA Et.2 App.45 BLOC 8 Martil','RUE7','SECT7','EA','IDGeo7','POLICE7','RS',0);`, [], onSuccess, onError);
+        tx.executeSql(`INSERT INTO compteur(numeroCompteur,nomAbonne ,adresse,numeroRue,codeSecteur,codeFluide,idGeographique,police,codeEtat,etatLecture,ancienIndex,consMoyenne) VALUES
+        ('117571','Belmaati imane IDRISSU BOUZIDI YOUSSEF','5 COMPLEX MIXTA SAFIA Et.2 App.44 BLOC 5 Martil','RUE1','SECT1','EA','IDGeo1','POLICE1','SE',0,50,100),
+        ('124572','Hamidou IDRISSU Said YOUSSEF','6 COMPLEX MIXTA SAFIA Et.2 App.44 BLOC 6 Martil','RUE2','SECT2','MT','IDGeo2','POLICE2','CS',null,40,50),
+        ('132573','IDAROUSSI IDRISSU BOUZIDI','7 COMPLEX MIXTA SAFIA Et.2 App.44 BLOC 7 Martil','RUE3','SECT3','BT','IDGeo3','POLICE3','RA',0,0,150),
+        ('147574','Abdouraouf Youssouf','5 COMPLEX MIXTA SAFIA Et.2 App.44 BLOC 5 Martil','RUE1','SECT1','EA','IDGeo4','POLICE4','SE',0,30,200),
+        ('154575','Djalaloudine mohamed','6 COMPLEX MIXTA SAFIA Et.2 App.44 BLOC 6 Martil','RUE2','SECT2','MT','IDGeo5','POLICE5','CS',0,10,250),
+        ('162576','Abdoulhalim Youssouf','7 COMPLEX MIXTA SAFIA Et.2 App.44 BLOC 7 Martil','RUE3','SECT3','BT','IDGeo6','POLICE6','RA',0,20,40),
+        ('124577','Hamidou IDRISSU Said YOUSSEF','6 COMPLEX MIXTA SAFIA Et.2 App.44 BLOC 6 Martil','RUE2','SECT2','MT','IDGeo7','POLICE7','CS',null,40,60),
+        ('132078','IDAROUSSI IDRISSU BOUZIDI','7 COMPLEX MIXTA SAFIA Et.2 App.44 BLOC 7 Martil','RUE3','SECT3','BT','IDGeo8','POLICE8','RA',0,0,70),
+        ('147179','Abdouraouf Youssouf','5 COMPLEX MIXTA SAFIA Et.2 App.44 BLOC 5 Martil','RUE1','SECT1','EA','IDGeo9','POLICE9','SE',0,30,80),
+        ('154210','Djalaloudine mohamed','6 COMPLEX MIXTA SAFIA Et.2 App.44 BLOC 6 Martil','RUE2','SECT2','MT','IDGeo10','POLICE10','CS',0,10,90),
+        ('162311','Abdoulhalim Youssouf','7 COMPLEX MIXTA SAFIA Et.2 App.44 BLOC 7 Martil','RUE3','SECT3','BT','IDGeo11','POLICE11','RA',0,20,110),
+        ('176412','Andhimdine Youssouf','8 COMPLEX MIXTA SAFIA Et.2 App.45 BLOC 8 Martil','RUE1','SECT1','EA','IDGeo12','POLICE12','RS',0,60,120);`, [], onSuccess, onError);
 
       },
       () => {
@@ -263,7 +267,7 @@ export const creteTerminal = (numerTerminal, rueEnLecture) => {
         console.log('Results', results.rowsAffected);
         if (results.rowsAffected > 0) {
           console.log('Data saved!!')
-        } else console.log('Erreur enregistrement de user !!!');
+        } else console.log('Erreur enregistrement du terminal !!!');
       }
     );
   });

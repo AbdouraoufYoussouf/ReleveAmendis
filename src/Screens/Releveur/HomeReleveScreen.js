@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef, Fragment } from 'react'
-import { KeyboardAvoidingView, ScrollView, Text, View, TouchableOpacity, StyleSheet, useWindowDimensions, RefreshControl, LogBox } from 'react-native';
+import { KeyboardAvoidingView, ScrollView, Text, View, TouchableOpacity, StyleSheet, useWindowDimensions, RefreshControl, LogBox, ActivityIndicator } from 'react-native';
 import { Form, FormControle, MyText, InputFild, Label, FormInput, MyButton } from '../styles/homeStyle';
 import Dialog from "react-native-dialog";
 import { AntDesign, FontAwesome, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -7,15 +7,17 @@ import { useDispatch, useSelector } from 'react-redux';
 import Swiper from 'react-native-swiper';
 import { ToastSuccess } from '../../Components/Notifications';
 import { BarIndicator, UIActivityIndicator, } from 'react-native-indicators';
-import { notLoding, setIdCompteur } from '../../../services/redux/compteurSlice';
+import { minLoding, notLoding, notMinLoding, setCompteurs, setIdCompteur } from '../../../services/redux/compteurSlice';
 import MyLoader from '../../Components/MyLoader';
-import { Select, NativeBaseProvider, extendTheme, CheckIcon } from "native-base";
 
 import * as yup from 'yup';
 import { Formik } from 'formik';
 import { Icone, Icone1 } from '../../Connexion/styles';
 import MySelect from '../../Components/MySelect';
 import MyDialog from '../../Components/MyDialog';
+import MyDialogAndConfirm from '../../Components/MyDialogAndConfirm';
+import { updateNewIndex, verifieConsomation } from '../../../services/Compteur.Service';
+import { AddDataToStore } from '../../../services/AddDataTotore';
 
 const wait = (timeout) => {
   return new Promise(resolve => setTimeout(resolve, timeout));
@@ -25,28 +27,27 @@ export default function HomeReleveScreen({ navigation, route }) {
 
   const idCompteur = useSelector((state) => state.compteurs.idCompteur);
   const [index, setIndex] = useState(0);
-  //console.log('idcompteur', idCompteur)
 
   const { height, width } = useWindowDimensions();
   const dispatch = useDispatch()
 
   ///////////////////////// les données /////////////////////
-  const datas = useSelector((state) => state.compteurs.compteurs);
-  const [compteurs, setCompteurs] = useState([])
-  const [compteur, setCompteur] = useState([]);
+  const datas = useSelector((state) => state.compteurs.ancienCompteurs);
+  const compteurs = useSelector((state) => state.compteurs.compteurs);
 
   const anomaliesData = useSelector((state) => state.anomalies.designationAnomalie);
   const [anomalies, setAnomalies] = useState([])
   const [designationData, setDesignationData] = useState([])
+ // console.log('anomalie', compteurs)
 
   const isLoding = useSelector((state) => state.compteurs.isLoding);
-  //console.log('data', compteurs)
+
   ///////////////////////// les inputes /////////////////////
-  const [numCompt, setNumCompt] = useState();
-  const [idGeo, setIdGeo] = useState();
-  const [newIndex, setNewIndex] = useState('');
-  const [anomalie1, setAnomalie1] = useState('');
-  const [anomalie2, setAnomalie2] = useState('');
+  const [numCompt, setNumCompt] = useState(null);
+  const [nouveauIndex, setNouveauIndex] = useState('');
+  const [ancienIndex, setAncienIndex] = useState(null);
+  const [anomalie1, setAnomalie1] = useState(null);
+  const [anomalie2, setAnomalie2] = useState(null);
   const [index1, setindex1] = useState();
   const [index2, setindex2] = useState();
   const [index3, setindex3] = useState();
@@ -55,47 +56,65 @@ export default function HomeReleveScreen({ navigation, route }) {
   const [index6, setindex6] = useState();
   const [index7, setindex7] = useState();
 
+  const [lu, setLu] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
 
   //     *************  search  **************
   const [termSearch, setTermSearch] = useState('');
 
-  const search = (searchItem) => {
-    return compteurs.find(c => c.numeroCompteur === searchItem) || compteurs.find(c => c.idGeographique === searchItem) || compteurs.find(c => c.nomAbonne === searchItem) || compteurs.find(c => c.police === searchItem);
-  }
+
+  const [label1, setLabel1] = useState('');
+  const [label2, setLabel2] = useState('');
   /// Dialog ***********
   const [modalVisible, setModalVisible] = useState(false);
   const [errore, setErrore] = useState(null);
   /// Dialog ***********
 
+  /// DialogAndConfirm ***********
+  const [dialogVisible, setDialogVisible] = useState(false);
+  const [indicator, setIndicator] = useState(false);
+  const [WarningMessg, setWarningMessg] = useState('');
+  /// DialogAndConfirm ***********
+  const search = (searchItem) => {
+    return compteurs.find(c => c.numeroCompteur === searchItem) || compteurs.find(c => c.idGeographique === searchItem) || compteurs.find(c => c.nomAbonne === searchItem) || compteurs.find(c => c.police === searchItem);
+  }
+  const searchGeneral = (searchItem) => {
+    return datas.find(c => c.numeroCompteur === searchItem) || datas.find(c => c.idGeographique === searchItem) || compteurs.find(c => c.nomAbonne === searchItem) || compteurs.find(c => c.police === searchItem);
+  }
+
   const handleSearch = () => {
     let temp = search(termSearch)
     // console.log('serach', termSearch)
-    
-    if (temp != null && termSearch!='') {
-      // console.log('idcompt', temp.compteurId)
-      // console.log('index', index)
-      // console.log('compteur', compteur)
+
+    if (temp != null && termSearch != '') {
       dispatch(setIdCompteur(temp.compteurId - 1))
-      setCompteur(temp)
+      setLu(1)
+      console.log('temp', temp)
     }
-    if (temp == null  && termSearch!='') {
+
+    if (temp == null && termSearch != '') {
       setModalVisible(true)
-      setErrore("Le terme rechercher n'existe pas !!")
-      // wait(5000).then(() => setErrore(""));
+      let temp1 = searchGeneral(termSearch)
+
+      if (temp1 != null) {
+        setErrore("Le compteur recherché est déjà lu")
+      }else{
+        setErrore("Le terme recherché n'existe pas !!")
+      }
     }
-    if (temp == null  && termSearch=='') {
+
+    if (temp == null && termSearch == '') {
       setModalVisible(true)
       setErrore("Veillez saisir un terme à rechercher svp !!")
       // wait(5000).then(() => setErrore(""));
     }
   }
 
-  const setLoding = () => {
-    if (anomaliesData.length != 0) {
-      wait(200).then(() => dispatch(notLoding()));
-    }
-  };
+  // const setLoding = () => {
+  //   if (anomaliesData.length != 0) {
+  //     wait(200).then(() => dispatch(notLoding()));
+  //   }
+  // };
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -103,35 +122,78 @@ export default function HomeReleveScreen({ navigation, route }) {
   }, []);
 
   //**************** Code pour chercher que les designations des anomalies **********
-  const designations = designationData.map((a) => {
-    return { label: a.designation, value: a.designation }
+  const designations = anomaliesData.map((a, index) => {
+    return { label: a.designation, value: a.codeAnomalie }
   });
-  // console.log('designations', designations)
-  // console.log('anomalies', anomalies)
+
 
   const handleAnnuler = () => {
     setAnomalie1('');
     setAnomalie2('');
-    setNewIndex('');
+    setLabel1('');
+    setLabel2('');
+    setNouveauIndex('');
   }
+  const handleSubmit = (ancienIndex, newIndex, consMoyenne, numeroCompteur) => {
 
-  const handleSubmit = () => {
+    if (nouveauIndex === '' || nouveauIndex === 0) {
+      setErrore("Veillez saisir l'index s'il vous plait!!")
+      setModalVisible(true)
+    } else {
+      setNumCompt(numeroCompteur)
+      setAncienIndex(ancienIndex)
+      console.log(newIndex, ancienIndex, consMoyenne)
+      verifieConsomation(ancienIndex, newIndex, consMoyenne, setDialogVisible, setWarningMessg);
+    }
+    console.log("index:", nouveauIndex)
     console.log("anomalie1:", anomalie1)
     console.log("anomalie2:", anomalie2)
-    console.log("index:", newIndex)
+  }
+
+  const handlSave = (numCompt, newIndex, ancienIndex, anomalie1, anomalie2) => {
+    setIndicator(true);
+    updateNewIndex(numCompt, newIndex, ancienIndex, anomalie1, anomalie2)
+    //AddDataToStore(dispatch);
+    let ancienCompteurs = compteurs.filter((comt) => comt.numeroCompteur !== numCompt)
+    let newCompteurs = ancienCompteurs.map((item, index) => {
+      return {
+        compteurId: index + 1, idCompteur: item.compteurId, numeroCompteur: item.numeroCompteur, ancienIndex: item.ancienIndex,
+        anomalie1: item.anomalie1, codeEtat: item.codeEtat, codeFluide: item.codeFluide,
+        codeSecteur: item.codeSecteur, consMoyenne: item.consMoyenne, dateReleve: item.dateReleve,
+        heureReleve: item.heureReleve, etatLecture: item.etatLecture, idGeographique: item.idGeographique,
+        nomAbonne: item.nomAbonne, nouveauIndex: item.nouveauIndex, nouveauIndex1: item.nouveauIndex1,
+        nouveauIndex2: item.nouveauIndex2, nouveauIndex3: item.nouveauIndex3, nouveauIndex4: item.nouveauIndex4,
+        nouveauIndex5: item.nouveauIndex5, nouveauIndex6: item.nouveauIndex6, nouveauIndex7: item.nouveauIndex7,
+        numeroRue: item.numeroRue, police: item.police, adresse: item.adresse, consommation: item.consommation
+      }
+    })
+    
+    handleAnnuler();
+    setLu(1)
+    dispatch(setCompteurs(newCompteurs))
+    setTimeout(() => {
+      setDialogVisible(false);
+      setIndicator(false);
+    }, 200)
   }
 
   useEffect(() => {
     setIndex(idCompteur);
-    setCompteurs(datas);
     setDesignationData(anomaliesData)
     setAnomalies(designations)
-    setLoding();
-    // console.log('*****************')
-    // console.log('useIndex',index)
-    // console.log('*****************')
-    //handleSearch()
-  }, [idCompteur, termSearch])
+    //setLoding();
+
+  }, [idCompteur, termSearch, indicator, lu, compteurs])
+
+  const renderPagination = (index, total, context) => {
+    return (
+      <View style={styles.paginationStyle}>
+        <Text style={{ color: 'black', fontSize: 20 }}>
+          <Text style={styles.paginationText}>{index + 1}</Text >/{total}
+        </Text>
+      </View>
+    )
+  }
 
   return (
     <>
@@ -143,9 +205,10 @@ export default function HomeReleveScreen({ navigation, route }) {
           (
             <>
               <Swiper style={styles.wrapper}
-                index={index}
+                index={idCompteur}
                 onIndexChanged={(index) => console.log('index changed', index)}
-                showsPagination={false}
+                showsPagination={true}
+                renderPagination={renderPagination}
                 showsButtons loop={false}
                 buttonWrapperStyle={{
                   backgroundColor: 'transparent',
@@ -185,22 +248,33 @@ export default function HomeReleveScreen({ navigation, route }) {
 
                         <KeyboardAvoidingView key={index} keyboardVerticalOffset={-270}
                           behavior='position'>
+
                           <MyDialog modalVisible={modalVisible}
                             content={errore}
                             setModalVisible={setModalVisible}
                             type='warning'
                           />
+                          <MyDialogAndConfirm
+                            dialogVisible={dialogVisible}
+                            setDialogVisible={setDialogVisible}
+                            indicator={indicator}
+                            content={WarningMessg}
+                            onPressSave={() => handlSave(numCompt, nouveauIndex, ancienIndex, anomalie1, anomalie2)}
+                            type='warning'
+                          />
+
+
                           <Form>
                             <FormControle width='99%' marginV='1px' >
                               <FormInput>
                                 {
                                   termSearch != '' ? (
-                                    <Icone1 width='50px' onPress={()=>setTermSearch('')} >
+                                    <Icone1 width='50px' onPress={() => setTermSearch('')} >
                                       <Ionicons name='md-close-circle-outline' size={30} color={'rgba(255,255,255,0.7)'} />
                                     </Icone1>
                                   ) : (
                                     <Icone1 width='50px' >
-                                      <MaterialCommunityIcons name="gesture-two-double-tap" size={30} style={{transform: [{ rotate: '90deg'}]}} color="rgba(255,255,255,0.7)" />
+                                      <MaterialCommunityIcons name="gesture-two-double-tap" size={30} style={{ transform: [{ rotate: '90deg' }] }} color="rgba(255,255,255,0.7)" />
                                     </Icone1>
                                   )
                                 }
@@ -219,6 +293,7 @@ export default function HomeReleveScreen({ navigation, route }) {
                             </FormControle>
 
                           </Form>
+
                           {/* {
                             errore != null ? (
                               <Text style={{ fontSize: 20, textAlign: 'center', marginBottom: 5, color: 'yellow', }}>
@@ -234,8 +309,11 @@ export default function HomeReleveScreen({ navigation, route }) {
                               <FormInput>
                                 <Label>N° C</Label>
                                 <InputFild value={item.numeroCompteur} keyboardType='numeric' width='57%' />
-                              </FormInput>
 
+
+
+
+                              </FormInput>
                               <FormInput>
                                 <MyText large>Etat: </MyText>
                                 <InputFild keyboardType='numeric' value={item.codeEtat} width='10%' />
@@ -252,13 +330,16 @@ export default function HomeReleveScreen({ navigation, route }) {
                               <FormInput>
                                 <Label>Index</Label>
                                 <InputFild
-                                  value={newIndex}
-                                  onChangeText={(index) => setNewIndex(index)}
+                                  placeholder='Index'
+                                  placeholderTextColor='gray'
+                                  defaultValue={item.nouveauIndex}
+                                  value={nouveauIndex}
+                                  onChangeText={(index) => setNouveauIndex(index)}
                                   keyboardType='numeric' width='57%' />
                               </FormInput>
                               <FormInput>
                                 <TouchableOpacity style={{}}
-                                  onPress={handleSubmit}>
+                                  onPress={() => handleSubmit(item.ancienIndex, nouveauIndex, item.consMoyenne, item.numeroCompteur)}>
                                   <MyButton bg='blue' height paddingTop='5px' width='70px' fontSize='22px' color='white' >OK</MyButton>
                                 </TouchableOpacity>
                               </FormInput>
@@ -269,8 +350,9 @@ export default function HomeReleveScreen({ navigation, route }) {
                                 <Label >AN1</Label>
                                 <MySelect
                                   placeholder='Select Anomalie 1'
-                                  data={anomaliesData}
-                                  value={anomalie1}
+                                  data={designations}
+                                  label={label1}
+                                  setLabel={setLabel1}
                                   setValue={setAnomalie1} />
                               </FormInput>
                             </FormControle>
@@ -280,14 +362,16 @@ export default function HomeReleveScreen({ navigation, route }) {
                                 <Label >AN2</Label>
                                 <MySelect
                                   placeholder='Select Anomalie 2'
-                                  data={anomaliesData}
-                                  value={anomalie2}
+                                  data={designations}
+                                  label={label2}
+                                  setLabel={setLabel2}
                                   setValue={setAnomalie2} />
                               </FormInput>
                             </FormControle>
 
                             {item.codeFluide == 'MT' ?
                               (<>
+
                                 <FormControle>
                                   <FormInput>
                                     <Label minWidth='30px' >In1</Label>
@@ -339,7 +423,11 @@ export default function HomeReleveScreen({ navigation, route }) {
                                     abonne: item.nomAbonne,
                                     adresse: item.adresse,
                                     codeEtat: item.codeEtat,
-                                    lecture: item.etatLecture
+                                    lecture: item.etatLecture,
+                                    ancienIndex: item.ancienIndex,
+                                    newIndex: item.nouveauIndex,
+                                    consMoyenne: item.consMoyenne,
+                                    consommation: item.consommation
                                   });
                                 }}
                                   style={styles.btnPreSuv}>
@@ -408,4 +496,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  paginationStyle: {
+    position: 'absolute',
+    bottom: 10,
+    right: 10
+  },
+  paginationText: {
+    color: 'white',
+    fontSize: 20
+  }
 });

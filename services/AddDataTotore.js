@@ -1,9 +1,10 @@
 //import { useDispatch } from "react-redux"
 import { setAnomalies, setDesignationAnomalies } from "./redux/anomalieSlice";
-import { loding, setCompteurs } from "./redux/compteurSlice";
+import { loding, setAncienCompteurs, setCompteurs } from "./redux/compteurSlice";
+import { setRue, setSecteur, setTourne } from "./redux/rueSecteurSlice";
 import db from "./SqliteDb";
 
-export const AddDataToStore = (dispatch) => {
+export const AddDataToStore = (dispatch,userId) => {
     //const dispatch = useDispatch();
     ///Anomalies
     db.transaction(function (txn) {
@@ -13,12 +14,12 @@ export const AddDataToStore = (dispatch) => {
             (tx, res) => {
                 var temp = [];
                 let len = res.rows.length;
-                console.log('Anomalie:', len);
                 for (let i = 0; i < len; ++i)
-                    temp.push(res.rows.item(i));
+                temp.push(res.rows.item(i));
                 dispatch(setAnomalies(
                     { anomalies: temp }
-                ))
+                    ))
+                    //console.log('Anomalie:', len);
             }
         );
     });
@@ -33,16 +34,17 @@ export const AddDataToStore = (dispatch) => {
                 console.log('Compteur:', len);
                 for (let i = 0; i < len; ++i)
                     temp.push(res.rows.item(i));
-                //console.log(temp[0])
-                dispatch(loding());
-                dispatch(setCompteurs(temp))
+               // console.log(temp[1])
+                //dispatch(loding());
+                dispatch(setAncienCompteurs(temp))
             }
         );
     });
+
     ///////*********** Add All Designations anomalies to store //////// */
     db.transaction(function (txn) {
         txn.executeSql(
-            'SELECT designation FROM anomalie',
+            'SELECT * FROM anomalie',
             [],
             (tx, res) => {
                 var temp = [];
@@ -54,5 +56,36 @@ export const AddDataToStore = (dispatch) => {
             }
         );
     });
+    ///////*********** Add rue to store //////// */
+    db.transaction(function (txn) {
+        txn.executeSql(
+            'SELECT * FROM rue',
+            [],
+            (tx, res) => {
+                var temp = [];
+                let len = res.rows.length;
+                for (let i = 0; i < len; ++i)
+                temp.push(res.rows.item(i));
+                dispatch(setRue(temp))
+                console.log('rues:', len);
+            }
+        );
+    });
+    ///////*********** Add Secteur to store //////// */
+    db.transaction(function (txn) {
+        txn.executeSql(
+            'SELECT * FROM secteur',
+            [],
+            (tx, res) => {
+                var temp = [];
+                let len = res.rows.length;
+                for (let i = 0; i < len; ++i)
+                temp.push(res.rows.item(i));
+                dispatch(setSecteur(temp))
+                console.log('secteurs:', len);
+            }
+        );
+    });
+   
 
 }
